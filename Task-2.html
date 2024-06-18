@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Sentiment Analysis between Donald Trump and Hillary Clinton</title>
+
+<script src="site_libs/header-attrs-2.27/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Big Data in International Relations</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="Task-1.html">Task 1</a>
+</li>
+<li>
+  <a href="Task-2.html">Task 2</a>
+</li>
+<li>
+  <a href="Task-3.html">Task 3</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Sentiment Analysis between Donald Trump and
+Hillary Clinton</h1>
+
+</div>
+
+
+<p><br></p>
+<p>This task has two parts.</p>
+<p>In the first part, we will use a dataset called <a
+href="resources/tweets.csv">tweets.csv</a> that contains tweets and
+comments from Donald Trump and Hillary Clinton. We will analyze the
+sentiments in these tweets and comments. We will categorize the tweets
+and comments as positive, negative, or neutral and create visualizations
+to show the results.</p>
+<p>In the second part, we will collect 40 journal articles about the
+sentiments around Hillary Clinton and Donald Trump. Then, we will
+analyze these articles to understand how sentiment analysis was used and
+what trends were found in public opinion. Here’s the folder containing
+all of those collected articles that published to Google Scholar: <a
+href="https://github.com/muhammad-zulfikar/bigDataInInternationalRelations/tree/main/resources/pdf">PDF
+folder</a></p>
+<p><br></p>
+<div id="sentiment-analysis-from-tweets" class="section level1">
+<h1>Sentiment Analysis from Tweets</h1>
+<p><br></p>
+<div id="load-required-libraries" class="section level2">
+<h2>Load required libraries</h2>
+<pre class="r"><code># Load required libraries
+library(readr)
+library(dplyr)
+library(stringr)
+library(tidytext)
+library(ggplot2)</code></pre>
+<p><br></p>
+</div>
+<div id="read-the-csv-file" class="section level2">
+<h2>Read the CSV file</h2>
+<pre class="r"><code># Read the CSV file
+tweets &lt;- read_csv(&quot;./resources/tweets.csv&quot;)</code></pre>
+<p><br></p>
+</div>
+<div id="data-cleaning-and-preprocessing" class="section level2">
+<h2>Data cleaning and preprocessing</h2>
+<pre class="r"><code># Data cleaning and preprocessing
+tweets &lt;- tweets %&gt;%
+  mutate(text = str_replace_all(text, &quot;https?://\\S+&quot;, &quot;&quot;)) %&gt;%  # Remove URLs
+  mutate(text = str_replace_all(text, &quot;@\\w+&quot;, &quot;&quot;)) %&gt;%  # Remove mentions
+  mutate(text = str_replace_all(text, &quot;#\\w+&quot;, &quot;&quot;)) %&gt;%  # Remove hashtags
+  mutate(text = str_replace_all(text, &quot;[^[:alnum:][:space:]]+&quot;, &quot;&quot;)) %&gt;%  # Remove special characters
+  mutate(text = str_trim(text)) %&gt;%  # Trim whitespace
+  filter(!is.na(text) &amp; text != &quot;&quot;)  # Remove empty/NA rows</code></pre>
+<pre class="r"><code># Tokenize text data
+tweets_tokens &lt;- tweets %&gt;%
+  unnest_tokens(word, text)</code></pre>
+<p><br></p>
+</div>
+<div id="sentiment-analysis" class="section level2">
+<h2>Sentiment Analysis</h2>
+<pre class="r"><code># Perform sentiment analysis
+sentiment_scores &lt;- tweets_tokens %&gt;%
+  inner_join(get_sentiments(&quot;afinn&quot;), by = &quot;word&quot;) %&gt;%
+  group_by(handle) %&gt;%
+  summarize(sentiment_score = sum(value))</code></pre>
+<pre class="r"><code># Plot sentiment analysis graph
+ggplot(sentiment_scores, aes(x = handle, y = sentiment_score, fill = handle)) +
+  geom_bar(stat = &quot;identity&quot;) +
+  labs(title = &quot;Sentiment Analysis between Donald Trump and Hillary Clinton&quot;,
+       x = &quot;Candidate&quot;,
+       y = &quot;Sentiment Score&quot;) +
+  theme_minimal() +
+  theme(legend.position = &quot;none&quot;)</code></pre>
+<p><img src="Task-2_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p><br></p>
+</div>
+</div>
+<div id="sentiment-analysis-from-journalarticle" class="section level1">
+<h1>Sentiment Analysis from Journal/Article</h1>
+<p><br></p>
+<div id="data-scraping" class="section level2">
+<h2>Data Scraping</h2>
+<p><br></p>
+<div id="load-necessary-libraries" class="section level3">
+<h3>Load necessary libraries</h3>
+<pre class="r"><code># Load necessary libraries
+library(rvest)
+library(httr)
+library(tools)</code></pre>
+<p><br></p>
+</div>
+<div id="scrape-journalarticle-pdfs-from-google-scholar"
+class="section level3">
+<h3>Scrape journal/article PDFs from Google Scholar</h3>
+<pre class="r"><code># Function to scrape Google Scholar and download PDF files
+scrape_google_scholar &lt;- function(query, pages, output_dir) {
+
+  # Create output directories if they do not exist
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive = TRUE)
+  }
+
+  # File to store metadata
+  metadata_file &lt;- file.path(output_dir, &quot;pdf_metadata.csv&quot;)
+
+  # Initialize metadata storage
+  metadata &lt;- data.frame(Link = character(), Title = character(), stringsAsFactors = FALSE)
+
+  # List to track downloaded PDF links
+  downloaded_links &lt;- c()
+  file_counter &lt;- 1
+
+  # Loop through each page
+  for (i in seq(0, (pages - 1) * 10, by = 10)) {
+
+    # Construct the URL
+    url &lt;- paste0(&quot;https://scholar.google.com/scholar?start=&quot;, i, &quot;&amp;q=&quot;, query, &quot;&amp;hl=en&amp;as_sdt=0,5&quot;)
+
+    # Read the page content
+    page &lt;- read_html(url)
+
+    # Extract PDF links
+    links &lt;- page %&gt;% html_nodes(&quot;a&quot;) %&gt;% html_attr(&quot;href&quot;)
+
+    # Filter PDF links
+    pdf_links &lt;- links[grepl(&quot;\\.pdf$&quot;, links)]
+
+    # Download each PDF if not already downloaded
+    for (pdf_link in pdf_links) {
+      if (!(pdf_link %in% downloaded_links)) {
+        safe_name &lt;- as.character(file_counter)
+        pdf_file &lt;- file.path(output_dir, paste0(safe_name, &quot;.pdf&quot;))
+
+        tryCatch({
+          download.file(pdf_link, pdf_file, mode = &quot;wb&quot;)
+          # Append metadata
+          metadata &lt;- rbind(metadata, data.frame(Link = pdf_link, Title = safe_name, stringsAsFactors = FALSE))
+          downloaded_links &lt;- c(downloaded_links, pdf_link)
+          file_counter &lt;- file_counter + 1
+        }, error = function(e) {
+          message(&quot;Failed to download &quot;, pdf_link, &quot;: &quot;, e)
+        })
+      } else {
+        message(&quot;Skipping already downloaded PDF: &quot;, pdf_link)
+      }
+    }
+  }
+
+  # Write metadata to CSV
+  write.csv(metadata, metadata_file, row.names = FALSE)
+}</code></pre>
+<pre class="r"><code># Run the function
+# scrape_google_scholar(&quot;donald+trump&quot;, 20, &quot;resources/pdf/donald+trump&quot;)</code></pre>
+<pre class="r"><code># Run the function
+# scrape_google_scholar(&quot;hillary+clinton&quot;, 20, &quot;resources/pdf/hillary+clinton&quot;)</code></pre>
+<p><br></p>
+</div>
+<div id="output" class="section level3">
+<h3>Output</h3>
+<p>We collected 40 Journal/Article PDFs about Donald Trump and Hillary
+Clinton</p>
+<pre><code>pdf/
+└── donald+trump/
+    ├── &lt;filename_1&gt;.pdf
+    ├── &lt;filename_2&gt;.pdf
+    ├── ...
+└── hillary+clinton/
+    ├── &lt;filename_1&gt;.pdf
+    ├── &lt;filename_2&gt;.pdf
+    ├── ...</code></pre>
+<p>The full collected pdf is available <a
+href="https://muhammad-zulfikar.github.io/bigDataInInternationalRelations/resources/pdf/">here</a></p>
+<p><br></p>
+</div>
+</div>
+<div id="data-cleaning" class="section level2">
+<h2>Data Cleaning</h2>
+<p><br></p>
+<div id="load-required-libraries-1" class="section level3">
+<h3>Load required libraries</h3>
+<pre class="r"><code># Load required libraries
+library(tidyverse)
+library(pdftools)
+library(tidytext)
+library(ggplot2)</code></pre>
+<p><br></p>
+</div>
+<div id="read-text-from-scraped-pdfs" class="section level3">
+<h3>Read text from scraped PDFs</h3>
+<pre class="r"><code># Set directory containing PDFs
+pdf_dir &lt;- &quot;resources/pdf&quot;
+
+# List all PDF files in the directory
+pdf_files &lt;- list.files(pdf_dir, full.names = TRUE)
+
+# Read the PDF files into a data frame
+text_data &lt;- lapply(pdf_files, function(file) {
+  tryCatch(
+    {
+      pdf_text(file)
+    },
+    error = function(e) {
+      warning(paste(&quot;Error reading file:&quot;, file))
+      return(NA)
+    }
+  )
+}) %&gt;%
+  unlist() %&gt;%
+  na.omit() %&gt;%
+  data.frame(text = .)</code></pre>
+<p><br></p>
+</div>
+<div id="cleaning-the-text-data" class="section level3">
+<h3>Cleaning the text data</h3>
+<pre class="r"><code># Function to clean text data
+clean_text &lt;- function(text) {
+  # Convert to lowercase
+  text &lt;- tolower(text)
+  
+  # Remove punctuation
+  text &lt;- gsub(&quot;[[:punct:]]&quot;, &quot; &quot;, text)
+  
+  # Remove numbers
+  text &lt;- gsub(&quot;[[:digit:]]&quot;, &quot;&quot;, text)
+  
+  # Remove extra white spaces
+  text &lt;- gsub(&quot;\\s+&quot;, &quot; &quot;, text)
+  
+  # Remove stop words
+  text &lt;- removeWords(text, stopwords(&quot;en&quot;))
+  
+  return(text)
+}
+
+# Apply text cleaning function to the text data
+text_data &lt;- text_data %&gt;%
+  mutate(cleaned_text = map_chr(text, clean_text))</code></pre>
+<p><br></p>
+</div>
+</div>
+<div id="sentiment-analysis-visualization" class="section level2">
+<h2>Sentiment Analysis Visualization</h2>
+<pre class="r"><code># Perform sentiment analysis for each candidate
+sentiment_analysis &lt;- text_data %&gt;%
+  mutate(candidate = case_when(
+    str_detect(cleaned_text, &quot;donald trump&quot;) ~ &quot;Trump&quot;,
+    str_detect(cleaned_text, &quot;hillary clinton&quot;) ~ &quot;Clinton&quot;,
+    TRUE ~ &quot;Other&quot;
+  )) %&gt;%
+  filter(candidate != &quot;Other&quot;) %&gt;%
+  unnest_tokens(word, cleaned_text) %&gt;%
+  inner_join(get_sentiments(&quot;bing&quot;), by = c(&quot;word&quot; = &quot;word&quot;)) %&gt;%
+  group_by(candidate) %&gt;%
+  summarise(sentiment_score = sum(sentiment == &quot;positive&quot;) - sum(sentiment == &quot;negative&quot;))</code></pre>
+<pre class="r"><code># Plotting the sentiment analysis results
+ggplot(sentiment_analysis, aes(x = candidate, y = sentiment_score, fill = candidate)) +
+  geom_bar(stat = &quot;identity&quot;) +
+  labs(x = &quot;Candidate&quot;, y = &quot;Sentiment Score&quot;, title = &quot;Sentiment Analysis for Trump vs Clinton&quot;) +
+  theme_minimal() +
+  scale_fill_manual(values = c(&quot;Trump&quot; = &quot;red&quot;, &quot;Clinton&quot; = &quot;blue&quot;)) +
+  geom_text(aes(label = sentiment_score), vjust = -0.5)</code></pre>
+<p><img src="Task-2_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<p><br></p>
+</div>
+</div>
+<div id="commentary" class="section level1">
+<h1>Commentary</h1>
+<p><br></p>
+<div id="analysis-based-on-tweets" class="section level3">
+<h3>Analysis Based on Tweets</h3>
+<p>The first bar chart shows the sentiment analysis scores for tweets
+mentioning Donald Trump and Hillary Clinton.</p>
+<div id="sentiment-scores" class="section level4">
+<h4>Sentiment Scores</h4>
+<ul>
+<li>Donald Trump: The sentiment score is significantly higher, around
+3500.</li>
+<li>Hillary Clinton: The sentiment score is lower, around 1500.</li>
+</ul>
+</div>
+<div id="interpretation" class="section level4">
+<h4>Interpretation</h4>
+<ul>
+<li>Higher Sentiment Score for Trump: This could indicate that tweets
+mentioning Donald Trump generally have a more positive sentiment
+compared to those mentioning Hillary Clinton. It’s also possible that
+Trump has a larger volume of tweets which could influence the overall
+sentiment score.</li>
+<li>Lower Sentiment Score for Clinton: Tweets mentioning Hillary Clinton
+tend to have a less positive or more negative sentiment compared to
+Donald Trump.</li>
+</ul>
+</div>
+<div id="implications" class="section level4">
+<h4>Implications</h4>
+<ul>
+<li>Public Perception: Based on the data from tweets, Donald Trump
+appears to have a more favorable sentiment among Twitter users compared
+to Hillary Clinton.</li>
+<li>Social Media Influence: The higher volume and possibly more positive
+mentions of Trump on Twitter could be reflective of his stronger
+presence or engagement on social media platforms.</li>
+</ul>
+<p><br></p>
+</div>
+</div>
+<div id="analysis-based-on-journal-articles" class="section level3">
+<h3>Analysis Based on Journal Articles</h3>
+<p>The second bar chart compares the sentiment from journal articles for
+both candidates.</p>
+<div id="sentiment-distribution" class="section level4">
+<h4>Sentiment Distribution</h4>
+<ul>
+<li>Donald Trump:
+<ul>
+<li>Negative Sentiment: Around 6000.</li>
+<li>Positive Sentiment: Slightly higher than negative, around 6200.</li>
+</ul></li>
+<li>Hillary Clinton:
+<ul>
+<li>Negative Sentiment: Around 6800.</li>
+<li>Positive Sentiment: Slightly lower than negative, around 6400.</li>
+</ul></li>
+</ul>
+</div>
+<div id="interpretation-1" class="section level4">
+<h4>Interpretation</h4>
+<ul>
+<li>Balanced Sentiment for Trump: The sentiment towards Donald Trump in
+journal articles is relatively balanced, with a slightly higher positive
+sentiment.</li>
+<li>Negative Sentiment for Clinton: Hillary Clinton has a higher
+negative sentiment in journal articles compared to positive
+sentiment.</li>
+</ul>
+</div>
+<div id="implications-1" class="section level4">
+<h4>Implications</h4>
+<ul>
+<li>Academic and Media Perception: Journal articles tend to have a more
+balanced view of Trump, while Clinton receives more negative
+sentiment.</li>
+<li>Public Discourse: The sentiment in journal articles reflects the
+complexities of each candidate’s public image, policies, and
+controversies discussed in academic and media circles.</li>
+</ul>
+<p><br></p>
+</div>
+</div>
+</div>
+<div id="references" class="section level1">
+<h1>References</h1>
+<p>Amanda, C. S. (2017). AN ANALYSIS OF THE USE OF WOMEN’S LANGUAGE
+FEATURES BY HILLARY CLINTON IN PRESIDENTIAL DEBATES. (Skripsi Sarjana,
+Universitas Sanata Dharma Yogyakarta)</p>
+<p>ASWAD, N. G. (2018). Exploring Charismatic Leadership: A Comparative
+Analysis of the Rhetoric of Hillary Clinton and Donald Trump in the 2016
+Presidential Election. Presidential Studies Quarterly</p>
+<p>Auxier, R., Burman, L., Nunns, J., &amp; Rohaly, J. (2016). AN
+ANALYSIS OF HILLARY CLINTON’S TAX PROPOSALS. TAX POLICY CENTER | URBAN
+INSTITUTE &amp; BROOKINGS INSTITUTION</p>
+<p>Brigitte L. Nacos, Robert Y. Shapiro, and Yaeli Bloch-Elkon. (2020).
+Donald Trump: Aggressive Rhetoric and Political Violence. PERSPECTIVES
+ON TERRORISM: Volume 14, Issue 5</p>
+<p>CATHERINE Y. KIM. et al. (2017). BRIEF OF AMICI CURIAE PROFESSORS OF
+FEDERAL COURTS JURISPRUDENCE, CONSTITUTIONAL LAW, AND IMMIGRATION LAW IN
+SUPPORT OF RESPONDENTS. Wilson-Epes Printing Co</p>
+<p>Clebanov, V. &amp; Kravitz, B. (2018). Gaze of the Medusa: The Defeat
+of Hillary Clinton. Athens Journal of Humanities &amp; Arts</p>
+<p>Dan P. McAdams. (2016). THE MIND OF DONALD TRUMP. The Atlantic
+Journal</p>
+<p>Donald J. Trump, McIver. M. (2006). Trump 101: The Way to
+Success.</p>
+<p>D. N. Smith, Hanley. E. (2018). The Anger Games: Who Voted for Donald
+Trump in the 2016 Election, and Why?. Critical Sociology 2018, Vol.
+44(2) 195–212</p>
+<p>Fea. J. (2018). Believe Me: The Evangelical Road to Donald Trump.
+(p. 76-85). William B Eerdmans Publishing Company.</p>
+<p>Hapsari, N. (2017). FRAMING WOMEN POLITICIAN IN DEMOCRATIC
+ENVIRONMENT: A STUDY OF MEGAWATI SOEKARNO PUTRI AND HILLARY CLINTON.
+RUBIKON: Journal of Transnational American Studies</p>
+<p>Hochschild. A. R. (2016). The Ecstatic Edge of Politics: Sociology
+and Donald Trump. American Sociological Association</p>
+<p>Jackson, N. (2016). HuffPost Forecasts Hillary Clinton Will Win With
+323 Electoral Votes. HuffPost</p>
+<p>Jonathan Rothwell. (2016). Explaining nationalist political views:
+The case of Donald Trump. Draft Working Paper</p>
+<p>Jones, J. J. (2015). “Talk like a man” The linguistic appeal of
+Hillary Rodham Clinton. Western Political Science Association</p>
+<p>Kanwal, S. &amp; Garcia, M. I. M. (2019). Representation of Gender
+Through Framing: A Critical Discourse Analysis of Hillary Clinton’s
+Selected Speeches. International Journal of English Linguistics</p>
+<p>Lakoff. G (2016). Why Trump? Political</p>
+<p>Mariani, M., Marshall, M. W., &amp; Mathews-Schultz, A. L. (2015).
+See Hillary Clinton, Nancy Pelosi, and Sarah Palin Run? Party, Ideology,
+and the Influence of Female Role Models on Young Women. Political
+Research Quarterly</p>
+<p>Mark Setzler, Alixandra B. Yanus. (2018). Why Did Women Vote for
+Donald Trump?. American Political Science Association</p>
+<p>Mayer, W. G. (2018). WAS THE PROCESS TO BLAME? WHY HILLARY CLINTON
+AND DONALD TRUMP WON THEIR PARTIES’ PRESIDENTIAL NOMINATIONS. New York
+University Law Review</p>
+<p>Michael Clarke &amp; Anthony Ricketts. (2017). Donald Trump and
+American foreign policy: The return of the Jacksonian tradition,
+Comparative Strategy, 36:4, 366-379, DOI:
+10.1080/01495933.2017.1361210</p>
+<p>Mueller, J. (2008). Tag Teaming the Press - How Bill and Hillary
+Clinton Work Together to Handle the Media. Rowman &amp; Littlefield
+Publishers, Inc.</p>
+<p>Oles-Acevedo, D. (2012). Fixing the Hillary Factor: Examining the
+Trajectory of Hillary Clinton’s Image Repair from Political Bumbler to
+Political Powerhouse. American Communication Journal</p>
+<p>Opstaele, S. (2008). Hillary Clinton vs. Barack Obama A linguistic
+study of appraisal in political speeches. University of Ghent</p>
+<p>Peter Dombrowski, Simon Reich, Does Donald Trump have a grand
+strategy?, International Affairs, Volume 93, Issue 5, September 2017,
+Pages 1013–1037, <a href="https://doi.org/10.1093/ia/iix161"
+class="uri">https://doi.org/10.1093/ia/iix161</a></p>
+<p>RAVIN, Y. &amp; KAZI, Z. (1999). Is Hillary Rodham Clinton the
+President? Disambiguating Names across Documents. ACL Anthology</p>
+<p>Remnick, D. (2017). Hillary Clinton Looks Back in Anger - She talks
+about Trump, Comey, collusion, “deplorables,” and the power of sexism.
+The New Yorker</p>
+<p>Sara Ahmadian, Sara Azarshahi, Delroy L. (2017). Explaining Donald
+Trump via communication style: Grandiosity, informality, and dynamism.
+Personality and Individual Differences 107 (2017) 49–53</p>
+<p>Sharrow, E. A., Strolovitch, D. Z., Heaney, M. T., Masket, S. E.,
+&amp; Miller, J. M. (2016). Gender Attitudes, Gendered Partisanship:
+Feminism and Support for Sarah Palin and Hillary Clinton among Party
+Activists, Journal of Women, Politics &amp; Policy</p>
+<p>Smith, S. (2012). “America’s Exhibit A”: Hillary Rodham Clinton’s
+Living History and the Genres of Authenticity. American Literary
+History</p>
+<p>Topic, M. &amp; Gilmer, E. (2017). Hillary Clinton and the Media:
+From Expected Roles to the Critique of Feminism. The Qualitative
+Report</p>
+<p>Winter, N. (2000). Gendered and Re-gendered: Public Opinion and
+Hillary Rodham Clinton. University of Michigan</p>
+<p>The White House Office of the Press Secretary. (2017). Presidential
+Executive Order on Assessing and Strengthening the Manufacturing and
+Defense Industrial Base and Supply Chain Resiliency of the United
+States.</p>
+<p>James P. Pfiffner. (2021). Donald Trump and the Norms of the
+Presidency. George Mason University</p>
+<p>Lucian G. C, Meredith A. R, Shannon C. (2017). Donald Trump as a
+Cultural Revolt Against Perceived Communication Restriction: Priming
+Political Correctness Norms Causes More Trump Support. Original Research
+Reports</p>
+<p>Kevin Arceneaux and Rory Truex. (2022). Donald Trump and the Lie.
+Cambridge University Press</p>
+<p>Daniel W. Drezner. (2020). Donald Trump and the American presidency.
+International Affairs 96:2 (383-400)</p>
+<p>Michele F. Margolis. (2020). Who Wants to Make America Great Again?
+Understanding Evangelical Support for Donald Trump. Politics and
+Religion, 13 (2020), 89–118</p>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Word Count, Word Cloud, Bigram, and Sentiment</title>
+
+<script src="site_libs/header-attrs-2.27/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Big Data in International Relations</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="Task-1.html">Task 1</a>
+</li>
+<li>
+  <a href="Task-2.html">Task 2</a>
+</li>
+<li>
+  <a href="Task-3.html">Task 3</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Word Count, Word Cloud, Bigram, and
+Sentiment</h1>
+
+</div>
+
+
+<p><br></p>
+<p>In this task, we will analyze text data. First, we will count how
+many times each word appears in our dataset. Then, we will create a word
+cloud to show which words are used most often. We will use the <a
+href="https://www.tidytextmining.com/">Tidy Text Mining</a> website for
+guidance. We will also look at pairs of words (bigrams) to see common
+phrases and perform sentiment analysis to find out if the text is
+positive, negative, or neutral.</p>
+<p><br></p>
+<div id="load-necessary-libraries" class="section level2">
+<h2>Load necessary libraries</h2>
+<pre class="r"><code># Load required packages for web scraping, text mining, and visualizing
+library(rvest)
+library(stringr)
+library(tidytext)
+library(tm)
+library(wordcloud)
+library(ggplot2)
+library(tidyr)
+library(dplyr)</code></pre>
+<p><br></p>
+</div>
+<div id="web-scraping" class="section level1">
+<h1>Web Scraping</h1>
+<p><br></p>
+<div id="specify-the-base-url-of-the-website" class="section level2">
+<h2>Specify the base URL of the website</h2>
+<pre class="r"><code>base_url &lt;- &quot;https://www.tidytextmining.com&quot;</code></pre>
+<p><br></p>
+</div>
+<div
+id="read-the-main-webpage-and-extract-links-from-the-table-of-contents"
+class="section level2">
+<h2>Read the main webpage and extract links from the table of
+contents</h2>
+<pre class="r"><code>webpage &lt;- read_html(base_url)
+
+toc_links &lt;- webpage %&gt;%
+  html_nodes(&quot;nav a&quot;) %&gt;%
+  html_attr(&quot;href&quot;)
+
+toc_links &lt;- toc_links[grepl(&quot;^/&quot;, toc_links)]
+page_urls &lt;- paste0(base_url, toc_links)</code></pre>
+<p><br></p>
+</div>
+<div id="scrape-content-from-each-page" class="section level2">
+<h2>Scrape content from each page</h2>
+<pre class="r"><code>all_page_content &lt;- list()
+
+for (full_url in page_urls) {
+  cat(&quot;Scraping content from:&quot;, full_url, &quot;\n&quot;)
+  
+  webpage &lt;- read_html(full_url)
+  
+  content_section &lt;- html_nodes(webpage, css = &quot;#content&quot;)
+  content_text &lt;- html_text(content_section)
+  
+  cleaned_content &lt;- str_replace_all(content_text, &quot;&lt;script.*?&lt;/script&gt;|&lt;style.*?&lt;/style&gt;&quot;, &quot;&quot;)
+  final_content &lt;- str_squish(cleaned_content)
+  
+  all_page_content[[full_url]] &lt;- final_content
+}</code></pre>
+<pre><code>## Scraping content from: https://www.tidytextmining.com/ 
+## Scraping content from: https://www.tidytextmining.com/preface 
+## Scraping content from: https://www.tidytextmining.com/tidytext 
+## Scraping content from: https://www.tidytextmining.com/sentiment 
+## Scraping content from: https://www.tidytextmining.com/tfidf 
+## Scraping content from: https://www.tidytextmining.com/ngrams 
+## Scraping content from: https://www.tidytextmining.com/dtm 
+## Scraping content from: https://www.tidytextmining.com/topicmodeling 
+## Scraping content from: https://www.tidytextmining.com/twitter 
+## Scraping content from: https://www.tidytextmining.com/nasa 
+## Scraping content from: https://www.tidytextmining.com/usenet 
+## Scraping content from: https://www.tidytextmining.com/references</code></pre>
+<p><br></p>
+</div>
+<div
+id="combine-all-scraped-content-into-a-single-data-frame-and-count-the-total-words"
+class="section level2">
+<h2>Combine all scraped content into a single data frame, and count the
+total words</h2>
+<pre class="r"><code>all_content_df &lt;- data.frame(page_url = names(all_page_content), content = unlist(all_page_content))
+
+total_word_count &lt;- sum(nchar(all_content_df$content) - nchar(gsub(&quot;\\s+&quot;, &quot;&quot;, all_content_df$content)))
+
+cat(&quot;Total word count:&quot;, total_word_count, &quot;\n&quot;)</code></pre>
+<pre><code>## Total word count: 39010</code></pre>
+<p><br></p>
+</div>
+</div>
+<div id="data-cleaning" class="section level1">
+<h1>Data Cleaning</h1>
+<p><br></p>
+<div id="clean-the-corpus-and-create-a-term-document-matrix"
+class="section level2">
+<h2>Clean the corpus and create a term-document matrix</h2>
+<pre class="r"><code>corpus &lt;- Corpus(VectorSource(all_content_df$content))
+corpus &lt;- tm_map(corpus, content_transformer(tolower))
+corpus &lt;- tm_map(corpus, removePunctuation)
+corpus &lt;- tm_map(corpus, removeNumbers)
+corpus &lt;- tm_map(corpus, removeWords, stopwords(&quot;en&quot;))
+
+tdm &lt;- TermDocumentMatrix(corpus)
+m &lt;- as.matrix(tdm)
+
+word_freq &lt;- sort(rowSums(m), decreasing = TRUE)
+valid_words &lt;- grep(&quot;^[a-zA-Z]+$&quot;, names(word_freq), value = TRUE)</code></pre>
+<p><br></p>
+</div>
+</div>
+<div id="visualization" class="section level1">
+<h1>Visualization</h1>
+<p><br></p>
+<div id="generate-word-cloud-based-on-filtered-word-frequencies"
+class="section level2">
+<h2>Generate word cloud based on filtered word frequencies</h2>
+<pre class="r"><code>wordcloud(words = valid_words, freq = word_freq[valid_words], min.freq = 10, 
+          random.order = FALSE, colors = brewer.pal(8, &quot;Dark2&quot;))</code></pre>
+<p><img src="Task-1_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p><br></p>
+</div>
+<div id="create-a-bar-plot-for-the-top-n-words-by-frequency"
+class="section level2">
+<h2>Create a bar plot for the top N words by frequency</h2>
+<pre class="r"><code>top_n &lt;- 10
+top_words &lt;- head(valid_words, n = top_n)
+word_counts &lt;- word_freq[top_words]
+
+bar_data &lt;- data.frame(word = top_words, frequency = word_counts)
+bar_data &lt;- bar_data[order(-bar_data$frequency), ]
+
+ggplot(bar_data, aes(x = reorder(word, frequency), y = frequency)) +
+  geom_bar(stat = &quot;identity&quot;) +
+  labs(title = paste(&quot;Top&quot;, top_n, &quot;Words by Frequency&quot;),
+       x = &quot;Word&quot;, y = &quot;Frequency&quot;) +
+  theme_minimal() +
+  coord_flip()</code></pre>
+<p><img src="Task-1_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p><br></p>
+</div>
+</div>
+<div id="analysis" class="section level1">
+<h1>Analysis</h1>
+<p><br></p>
+<div id="perform-sentiment-analysis-and-visualize-results"
+class="section level2">
+<h2>Perform sentiment analysis and visualize results</h2>
+<pre class="r"><code>corpus_tokens &lt;- all_content_df %&gt;%
+  mutate(content = tolower(content)) %&gt;%
+  unnest_tokens(word, content) %&gt;%
+  anti_join(stop_words)
+
+sentiment_scores &lt;- corpus_tokens %&gt;%
+  inner_join(get_sentiments(&quot;bing&quot;), by = &quot;word&quot;) %&gt;%
+  count(word, sentiment) %&gt;%
+  spread(sentiment, n, fill = 0) %&gt;%
+  mutate(sentiment_score = positive - negative)
+
+top_sentiment_words &lt;- sentiment_scores %&gt;%
+  top_n(10, abs(sentiment_score)) %&gt;%
+  mutate(word = reorder(word, sentiment_score))
+
+ggplot(top_sentiment_words, aes(x = word, y = sentiment_score, fill = sentiment_score &gt; 0)) +
+  geom_bar(stat = &quot;identity&quot;, show.legend = FALSE) +
+  scale_fill_manual(values = c(&quot;red&quot;, &quot;green&quot;), guide = FALSE) +
+  labs(title = &quot;Sentiment Analysis (Top 10 Words)&quot;,
+       x = &quot;Word&quot;, y = &quot;Sentiment Score&quot;) +
+  theme_minimal() +
+  coord_flip()</code></pre>
+<p><img src="Task-1_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p><br></p>
+</div>
+<div id="extract-bigrams-from-the-corpus-and-visualize-top-bigrams"
+class="section level2">
+<h2>Extract bigrams from the corpus and visualize top bigrams</h2>
+<pre class="r"><code>bigrams &lt;- corpus_tokens %&gt;%
+  filter(!is.na(lead(word))) %&gt;%
+  mutate(bigram = paste(word, lead(word), sep = &quot; &quot;)) %&gt;%
+  count(bigram, sort = TRUE)
+
+top_bigrams &lt;- bigrams %&gt;%
+  filter(n &gt; 10) %&gt;%
+  slice_max(order_by = n, n = 10)
+
+ggplot(top_bigrams, aes(x = reorder(bigram, n), y = n)) +
+  geom_col() +
+  labs(title = &quot;Top Bigrams&quot;,
+       x = &quot;Bigram&quot;, y = &quot;Frequency&quot;) +
+  theme_minimal() +
+  coord_flip()</code></pre>
+<p><img src="Task-1_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
